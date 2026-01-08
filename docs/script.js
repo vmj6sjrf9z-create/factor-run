@@ -1,5 +1,5 @@
 window.onload = () => {
-
+alert("JS is working!");
 // gamr prepping.
 
   const GATE_SPEED = 3;
