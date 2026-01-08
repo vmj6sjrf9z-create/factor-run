@@ -1,0 +1,65 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+  color: white;
+  font-family: Arial, sans-serif;
+  webkit-user-select: none ;
+  position: fixed;
+}
+
+#hud {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  font-size: 18px;
+}
+
+#game {
+  position: relative;
+  width: 100vw;
+  height: 80vh;
+}
+
+#player-area, #enemy-area {
+  position: absolute;
+}
+
+#player-area {
+  left: 60px;
+}
+
+#enemy-area {
+  right: 60px;
+}
+
+.ball {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.ball.main { background: cyan; }
+.ball.extra { background: lightgreen; }
+.ball.enemy { background: red; }
+
+.gate {
+  position: absolute;
+  width: 90px;
+  height: 60px;
+  background: orange;
+  color: black;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+#message {
+  text-align: center;
+  font-size: 30px;
+  margin-top: 10px;
+}
