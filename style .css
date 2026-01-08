@@ -18,9 +18,11 @@ html, body {
 }
 
 #game {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
-  height: 80vh;
+  height: 100vh;
 }
 
 #player-area, #enemy-area {
