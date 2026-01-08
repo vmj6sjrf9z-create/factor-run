@@ -12,58 +12,108 @@ html, body {
 
 #hud {
   display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  font-size: 18px;
+* {
+  box-sizing: border-box;
+  touch-action: none;
 }
 
-#game {
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #0b0b0b;
+  color: white;
+  font-family: Arial, sans-serif;
+  user-select: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
 }
 
-#player-area, #enemy-area {
+/* HUD */
+#hud {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 15px;
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+/* GAME CONTAINER */
+#game {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 50px);
+  overflow: hidden;
+}
+
+/* PLAYER & ENEMY AREAS */
+#player-area,
+#enemy-area {
   position: absolute;
+  width: 100%;
 }
 
 #player-area {
-  left: 60px;
+  bottom: 20px;
+  height: 40%;
 }
 
 #enemy-area {
-  right: 60px;
+  top: 0;
+  height: 40%;
 }
 
+/* BALLS */
 .ball {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
   position: absolute;
+  border-radius: 50%;
 }
 
-.ball.main { background: cyan; }
-.ball.extra { background: lightgreen; }
-.ball.enemy { background: red; }
+.player-ball {
+  background: #00ffcc;
+}
 
+.enemy-ball {
+  background: red;
+}
+
+/* GATES */
 .gate {
   position: absolute;
-  width: 90px;
-  height: 60px;
-  background: orange;
-  color: black;
-  font-size: 20px;
+  width: 80px;
+  height: 30px;
+  background: #222;
+  border: 2px solid #00ffcc;
+  color: white;
+  text-align: center;
+  line-height: 30px;
   font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
-#message {
+/* CRATE */
+.crate {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: #444;
+  border: 2px solid gold;
+  border-radius: 10px;
   text-align: center;
-  font-size: 30px;
-  margin-top: 10px;
+  line-height: 60px;
+  font-size: 28px;
+}
+
+/* END MESSAGE */
+#message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  display: none;
+  z-index: 20;
 }
