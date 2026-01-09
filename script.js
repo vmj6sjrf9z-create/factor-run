@@ -14,6 +14,7 @@ const bestEl = document.getElementById("best");
 const pauseBtn = document.getElementById("pauseBtn");
 const homeBtn = document.getElementById("homeBtn");
 const muteBtn = document.getElementById("muteBtn");
+const ballsEl = document.getElementById("balls");
 
 // ================= CONFIG =================
 const GATE_SPEED = 2.5;
@@ -268,6 +269,7 @@ function draw(){
   }
 
   scoreEl.textContent="Score: "+score;
+  ballsEl.textContent = "Balls: " + ballCount;
 }
 
 // ================= LOOP =================
