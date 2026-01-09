@@ -53,7 +53,7 @@ canvas {
 
 #balls {
   top: 26px;
-  left: 80%;
+  left: 50%;
   font-size: 18px;
   color: #7CFF7C; /* light green for clarity */
 }
