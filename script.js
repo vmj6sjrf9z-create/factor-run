@@ -222,6 +222,7 @@ function endBattle(){
 function resetGame(){
   gates=[]; crates=[]; enemies=[];
   ballCount=1; gatesPassed=0; cratesSpawned=0;
+score=0;
   gameState="RUN";
 }
 
