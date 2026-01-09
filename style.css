@@ -36,3 +36,17 @@ canvas {
   margin-left: 10px;
   font-size: 16px;
 }
+
+#score,
+#best {
+  position: fixed;
+  top: 12px;
+}
+
+#score {
+  left: 45%;
+}
+
+#best {
+  left: 55%;
+}
