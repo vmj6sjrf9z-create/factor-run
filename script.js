@@ -6,7 +6,7 @@ canvas.height = window.innerHeight;
 
 // ================= CONFIG =================
 const GATE_SPEED = 2.5;
-const ENEMY_SPEED = 1.2;
+const ENEMY_SPEED = 3;
 const CLASH_DELAY = 140;
 const GATES_PER_CRATE = 5;
 
