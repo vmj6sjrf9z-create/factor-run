@@ -4,49 +4,6 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// -------------------- GAME STATE --------------------
-let ballCount = 1;
-
-const ball = {
-  x: canvas.width / 2,
-  y: canvas.height - 100,
-  radius: 10,
-  speed: 4
-};
-
-const gates = [
-  { text: "×2", value: 2, x: canvas.width / 2 - 80, y: 300, hit: false },
-  { text: "×3", value: 3, x: canvas.width / 2 + 80, y: 500, hit: false },
-  { text: "÷2", value: 0.5, x: canvas.width / 2 - 80, y: 700, hit: false }
-];
-
-// -------------------- INPUT --------------------
-let touchX = ball.x;
-
-window.addEventListener("mousemove", e => {
-  touchX = e.clientX;
-});
-
-window.addEventListener("touchmove", e => {
-  touchX = e.touches[0].clientX;
-});
-
-// -------------------- DRAW --------------------
-function drawBall() {
-  ctx.fillStyle = "white";
-  ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawGates() {
-  ctx.font = "26px Arial";
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
 // ================= CONFIG =================
 const GATE_SPEED = 2.5;
 const ENEMY_SPEED = 1.2;
