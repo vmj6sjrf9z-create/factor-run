@@ -1,4 +1,4 @@
-const CACHE_NAME = "factor-run-v9";
+const CACHE_NAME = "factor-run-v10";
 
 const FILES_TO_CACHE = [
   "./",
