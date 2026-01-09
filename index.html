@@ -1,29 +1,24 @@
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Factor Run</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
-
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- UI Overlay -->
-  <div id="ui">
-    <div class="top-left">
-      <div>Score: <span id="score">0</span></div>
-      <div>Best: <span id="best">0</span></div>
-    </div>
-
-    <div class="top-right">
+  <!-- HUD -->
+  <div id="hud">
+    <div>
       <button id="homeBtn">🏠</button>
       <button id="pauseBtn">⏸</button>
+      <button id="muteBtn">🔊</button>
+    </div>
+    <div>
+      <span id="score">Score: 0</span>
+      <span id="best">Best: 0</span>
     </div>
   </div>
 
