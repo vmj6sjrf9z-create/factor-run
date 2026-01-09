@@ -16,10 +16,28 @@ let ballCount = 1;
 let gatesPassed = 0;
 let cratesSpawned = 0;
 
+let score = 0;
+let bestScore = localStorage.getItem("bestScore") || 0;
+
 let gameState = "RUN";
 let clashCooldown = false;
+let paused = false;
 
 let touchX = canvas.width / 2;
+
+// ================= UI =================
+const scoreEl = document.getElementById("score");
+const bestEl = document.getElementById("best");
+bestEl.textContent = bestScore;
+
+document.getElementById("pauseBtn").onclick = () => {
+  paused = !paused;
+};
+
+document.getElementById("homeBtn").onclick = () => {
+  level = 1;
+  resetGame();
+};
 
 // ================= PLAYER =================
 const player = {
@@ -67,7 +85,7 @@ function spawnGate() {
 }
 
 setInterval(() => {
-  if (gameState === "RUN") spawnGate();
+  if (gameState === "RUN" && !paused) spawnGate();
 }, 1000);
 
 function spawnCrate() {
@@ -87,8 +105,7 @@ function spawnEnemies() {
     enemies.push({
       x: canvas.width / 2 - count * 12 + i * 24,
       y: -40,
-      radius: 10,
-      hp: 1
+      radius: 10
     });
   }
   return count;
@@ -110,15 +127,11 @@ function drawGate(g) {
   ctx.font = "20px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(g.op.replace("*", "×").replace("/", "÷"), g.x + g.w / 2, g.y + g.h / 2);
-}
-
-function drawHUD() {
-  ctx.fillStyle = "white";
-  ctx.font = "18px Arial";
-  ctx.textAlign = "left";
-  ctx.fillText(`Level ${level}`, 20, 30);
-  ctx.fillText(`Balls: ${ballCount}`, 20, 55);
+  ctx.fillText(
+    g.op.replace("*", "×").replace("/", "÷"),
+    g.x + g.w / 2,
+    g.y + g.h / 2
+  );
 }
 
 // ================= UPDATE =================
@@ -149,6 +162,9 @@ function updateRun() {
     if (!g.counted && g.y > player.y) {
       g.counted = true;
       gatesPassed++;
+      score += 10;
+      scoreEl.textContent = score;
+
       if (Math.floor(gatesPassed / GATES_PER_CRATE) > cratesSpawned) {
         cratesSpawned++;
         spawnCrate();
@@ -201,17 +217,21 @@ let endText = "";
 function endBattle() {
   gameState = "END";
 
-  if (initialPlayerCount > initialEnemyCount) {
-    endText = `${initialPlayerCount} > ${initialEnemyCount}\nYOU WIN`;
-    level++;
-  } else if (initialPlayerCount < initialEnemyCount) {
-    endText = `${initialPlayerCount} < ${initialEnemyCount}\nYOU LOSE`;
-    level = 1;
-  } else {
-    endText = `${initialPlayerCount} = ${initialEnemyCount}\nNO WINNER`;
+  if (score > bestScore) {
+    bestScore = score;
+    localStorage.setItem("bestScore", bestScore);
+    bestEl.textContent = bestScore;
   }
 
-  setTimeout(resetGame, 2800);
+  if (initialPlayerCount > initialEnemyCount) {
+    endText = "YOU WIN";
+    level++;
+  } else {
+    endText = "YOU LOSE";
+    level = 1;
+  }
+
+  setTimeout(resetGame, 2500);
 }
 
 function resetGame() {
@@ -221,19 +241,28 @@ function resetGame() {
   gatesPassed = 0;
   cratesSpawned = 0;
   ballCount = 1;
+  score = 0;
+  scoreEl.textContent = 0;
   gameState = "RUN";
+  paused = false;
 }
 
 // ================= LOOP =================
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (gameState === "RUN") updateRun();
-  if (gameState === "BATTLE") updateBattle();
+  if (!paused) {
+    if (gameState === "RUN") updateRun();
+    if (gameState === "BATTLE") updateBattle();
+  }
 
-  // DRAW PLAYER BALLS
   for (let i = 0; i < ballCount; i++) {
-    drawBall(player.x + i * 22, player.y, player.radius, i === 0 ? "cyan" : "lightgreen");
+    drawBall(
+      player.x + i * 22,
+      player.y,
+      player.radius,
+      i === 0 ? "cyan" : "lightgreen"
+    );
   }
 
   gates.forEach(drawGate);
@@ -253,16 +282,7 @@ function loop() {
     ctx.fillText(endText, canvas.width / 2, canvas.height / 2);
   }
 
-  drawHUD();
   requestAnimationFrame(loop);
 }
 
 loop();
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
-      .then(() => console.log("Service Worker registered"))
-      .catch(err => console.error("SW failed:", err));
-  });
-}
