@@ -261,65 +261,70 @@ alert("JS is working!");
     gameState = "RUN";
     levelText.textContent = "Level " + level;
     spawnPlayerBalls();
-  }
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-// gameloop
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-  function gameLoop() {
+// -------------------- GAME STATE --------------------
+let ballCount = 1;
 
-    if (gameState === "RUN") {
-      const playerY = playerArea.getBoundingClientRect().top;
-
-      gates.forEach((gate, i) => {
-        gate.style.top = gate.offsetTop + GATE_SPEED + "px";
-
-        if (gate.dataset.used === "false" && anyBallCollides(gate)) {
-          gate.dataset.used = "true";
-          gate.style.background = "gray";
-          applyOperation(gate.dataset.op);
-        }
-
-        const rect = gate.getBoundingClientRect();
-        if (rect.top > playerY && gate.dataset.counted === "false") {
-          gate.dataset.counted = "true";
-          gatesPassed++;
-
-          if (Math.floor(gatesPassed / GATES_PER_CRATE) > cratesSpawned) {
-            cratesSpawned++;
-            spawnCrate();
-          }
-        }
-
-        if (gate.offsetTop > game.clientHeight + 150) {
-          gate.remove();
-          gates.splice(i, 1);
-        }
-      });
-
-      crates.forEach((crate, i) => {
-        crate.style.top = crate.offsetTop + GATE_SPEED + "px";
-
-        if (anyBallCollides(crate)) {
-          crates.forEach(c => c.remove());
-          crates = [];
-          startBattle();
-        }
-
-        if (crate.offsetTop > game.clientHeight + 150) {
-          crate.remove();
-          crates.splice(i, 1);
-        }
-      });
-    }
-
-    if (gameState === "BATTLE") handleBattle();
-
-    requestAnimationFrame(gameLoop);
-  }
-
-// restsrt
-  playerX = game.clientWidth / 2 - 40;
-  levelText.textContent = "Level " + level;
-  spawnPlayerBalls();
-  gameLoop();
+const ball = {
+  x: canvas.width / 2,
+  y: canvas.height - 100,
+  radius: 10,
+  speed: 4
 };
+
+const gates = [
+  { text: "×2", value: 2, x: canvas.width / 2 - 80, y: 300, hit: false },
+  { text: "×3", value: 3, x: canvas.width / 2 + 80, y: 500, hit: false },
+  { text: "÷2", value: 0.5, x: canvas.width / 2 - 80, y: 700, hit: false }
+];
+
+// -------------------- INPUT --------------------
+let touchX = ball.x;
+
+window.addEventListener("mousemove", e => {
+  touchX = e.clientX;
+});
+
+window.addEventListener("touchmove", e => {
+  touchX = e.touches[0].clientX;
+});
+
+// -------------------- DRAW --------------------
+function drawBall() {
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawGates() {
+  ctx.font = "26px Arial";
+  ctx.textAlign = "center";
+
+  gates.forEach(gate => {
+    ctx.fillStyle = "cyan";
+    ctx.fillText(gate.text, gate.x, gate.y);
+  });
+}
+
+function drawUI() {
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText(`Level 1`, 20, 30);
+  ctx.fillText(`Balls: ${ballCount}`, 20, 55);
+}
+
+// -------------------- UPDATE --------------------
+function update() {
+  ball.y -= ball.speed;
+  ball.x += (touchX - ball.x) * 0.1;
+
+  gates.forEach(gate => {
+    if (
+      !gate.hit &&
