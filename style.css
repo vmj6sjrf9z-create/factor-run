@@ -52,8 +52,8 @@ canvas {
 }
 
 #balls {
-  top: 26px;
-  left: 50%;
+  top: 50%;
+  left: 0%;
   font-size: 18px;
   color: #7CFF7C; /* light green for clarity */
 }
