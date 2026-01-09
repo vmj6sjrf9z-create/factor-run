@@ -50,3 +50,8 @@ canvas {
 #best {
   left: 60%;
 }
+
+#balls {
+  font-size: 18px;
+  color: #7CFF7C; /* light green for clarity */
+}
