@@ -1,43 +1,65 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
 // ================= CONFIG =================
-const GATE_SPEED = 2.5;
-const ENEMY_SPEED = 3;
-const CLASH_DELAY = 140;
+const GATE_SPEED = 2.6;
+const ENEMY_SPEED = 2.2;
+const CLASH_DELAY = 150;
 const GATES_PER_CRATE = 5;
+
+// ================= SOUNDS =================
+const sounds = {
+  multiply: new Audio("sounds/multiply.wav"),
+  divide: new Audio("sounds/divide.wav"),
+  battle: new Audio("sounds/battle.wav"),
+  win: new Audio("sounds/win.wav"),
+  lose: new Audio("sounds/lose.wav")
+};
+
+Object.values(sounds).forEach(s => s.preload = "auto");
+
+function playSound(s) {
+  if (!s) return;
+  s.currentTime = 0;
+  s.play().catch(() => {});
+}
+
+// Mobile audio unlock
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  Object.values(sounds).forEach(s => {
+    s.play().then(() => {
+      s.pause();
+      s.currentTime = 0;
+    }).catch(() => {});
+  });
+}
+canvas.addEventListener("touchstart", unlockAudio, { once: true });
+canvas.addEventListener("mousedown", unlockAudio, { once: true });
 
 // ================= STATE =================
 let level = 1;
 let ballCount = 1;
-let score = 0;
-let bestScore = localStorage.getItem("bestScore") || 0;
-
 let gatesPassed = 0;
 let cratesSpawned = 0;
-
 let gameState = "RUN";
-let paused = false;
 let clashCooldown = false;
-
 let touchX = canvas.width / 2;
-
-// ================= UI =================
-const scoreEl = document.getElementById("score");
-const bestEl = document.getElementById("best");
-bestEl.textContent = bestScore;
-
-document.getElementById("pauseBtn").onclick = () => paused = !paused;
-document.getElementById("homeBtn").onclick = () => resetGame(true);
 
 // ================= PLAYER =================
 const player = {
   x: canvas.width / 2,
   y: canvas.height - 120,
-  radius: 10
+  r: 10
 };
 
 // ================= OBJECTS =================
@@ -46,45 +68,37 @@ let crates = [];
 let enemies = [];
 
 // ================= INPUT =================
-canvas.addEventListener("mousemove", e => touchX = e.clientX);
-canvas.addEventListener("touchmove", e => touchX = e.touches[0].clientX, { passive: true });
+function move(x) {
+  touchX = x;
+}
+canvas.addEventListener("mousemove", e => move(e.clientX));
+canvas.addEventListener("touchmove", e => move(e.touches[0].clientX), { passive: true });
 
 // ================= HELPERS =================
-function circleRectCollide(cx, cy, r, rect) {
-  const x = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
-  const y = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
-  const dx = cx - x;
-  const dy = cy - y;
-  return dx * dx + dy * dy < r * r;
-}
-
-// 🔥 CHECK ALL PLAYER BALLS
-function anyPlayerBallHits(rect) {
-  for (let i = 0; i < ballCount; i++) {
-    const bx = player.x + i * 22;
-    if (circleRectCollide(bx, player.y, player.radius, rect)) {
-      return true;
-    }
-  }
-  return false;
+function circleRect(cx, cy, r, o) {
+  const x = Math.max(o.x, Math.min(cx, o.x + o.w));
+  const y = Math.max(o.y, Math.min(cy, o.y + o.h));
+  return (cx - x) ** 2 + (cy - y) ** 2 < r ** 2;
 }
 
 // ================= SPAWN =================
 function spawnGate() {
   const ops = ["*2", "/2", "*3"];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+
   gates.push({
-    x: Math.random() * (canvas.width - 90),
+    x: Math.random() * (canvas.width - 100),
     y: -80,
     w: 90,
     h: 60,
-    op: ops[Math.floor(Math.random() * ops.length)],
+    op,
     used: false,
     counted: false
   });
 }
 
 setInterval(() => {
-  if (gameState === "RUN" && !paused) spawnGate();
+  if (gameState === "RUN") spawnGate();
 }, 1000);
 
 function spawnCrate() {
@@ -96,33 +110,64 @@ function spawnCrate() {
   });
 }
 
+let initialEnemyCount = 0;
+let initialPlayerCount = 0;
+
 function spawnEnemies() {
   enemies = [];
-  const count = Math.floor(Math.random() * 5) + 5 + level * 2;
-  for (let i = 0; i < count; i++) {
+  initialEnemyCount = Math.floor(Math.random() * 5) + 5 + level * 2;
+  initialPlayerCount = ballCount;
+
+  for (let i = 0; i < initialEnemyCount; i++) {
     enemies.push({
-      x: canvas.width / 2 - count * 12 + i * 24,
+      x: canvas.width / 2 - initialEnemyCount * 12 + i * 24,
       y: -40,
-      radius: 10
+      r: 10
     });
   }
-  return count;
 }
 
-// ================= UPDATE =================
-function updatePlayer() {
-  player.x += (touchX - player.x) * 0.15;
+// ================= DRAW =================
+function drawBall(x, y, r, c) {
+  ctx.fillStyle = c;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
 }
 
+function drawGate(g) {
+  ctx.fillStyle = g.used ? "#555" : "orange";
+  ctx.fillRect(g.x, g.y, g.w, g.h);
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(g.op.replace("*", "×").replace("/", "÷"), g.x + g.w / 2, g.y + g.h / 2);
+}
+
+function drawHUD() {
+  ctx.fillStyle = "white";
+  ctx.font = "18px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText(`Level ${level}`, 20, 30);
+  ctx.fillText(`Balls: ${ballCount}`, 20, 55);
+}
+
+// ================= LOGIC =================
 function applyOperation(op) {
   const v = parseInt(op.slice(1));
-  ballCount = op.startsWith("*")
-    ? ballCount * v
-    : Math.max(1, Math.floor(ballCount / v));
+  if (op.startsWith("*")) {
+    ballCount *= v;
+    playSound(sounds.multiply);
+  } else {
+    ballCount = Math.max(1, Math.floor(ballCount / v));
+    playSound(sounds.divide);
+  }
 }
 
-let initialPlayerCount = 0;
-let initialEnemyCount = 0;
+function updatePlayer() {
+  player.x += (touchX - player.x) * 0.18;
+}
 
 function updateRun() {
   updatePlayer();
@@ -130,17 +175,17 @@ function updateRun() {
   gates.forEach((g, i) => {
     g.y += GATE_SPEED;
 
-    if (!g.used && anyPlayerBallHits(g)) {
-      g.used = true;
-      applyOperation(g.op);
+    for (let b = 0; b < ballCount; b++) {
+      const bx = player.x + b * 22;
+      if (!g.used && circleRect(bx, player.y, player.r, g)) {
+        g.used = true;
+        applyOperation(g.op);
+      }
     }
 
     if (!g.counted && g.y > player.y) {
       g.counted = true;
       gatesPassed++;
-      score += 10;
-      scoreEl.textContent = score;
-
       if (Math.floor(gatesPassed / GATES_PER_CRATE) > cratesSpawned) {
         cratesSpawned++;
         spawnCrate();
@@ -152,15 +197,23 @@ function updateRun() {
 
   crates.forEach((c, i) => {
     c.y += GATE_SPEED;
-    if (anyPlayerBallHits(c)) {
-      gameState = "BATTLE";
-      initialPlayerCount = ballCount;
-      initialEnemyCount = spawnEnemies();
-      crates = [];
+
+    for (let b = 0; b < ballCount; b++) {
+      const bx = player.x + b * 22;
+      if (circleRect(bx, player.y, player.r, c)) {
+        playSound(sounds.battle);
+        gameState = "BATTLE";
+        spawnEnemies();
+        crates = [];
+        return;
+      }
     }
+
     if (c.y > canvas.height + 100) crates.splice(i, 1);
   });
 }
+
+let endText = "";
 
 function updateBattle() {
   enemies.forEach(e => e.y += ENEMY_SPEED);
@@ -172,9 +225,8 @@ function updateBattle() {
     return;
   }
 
-  if (enemies[0].y + enemies[0].radius >= player.y) {
+  if (enemies[0].y + enemies[0].r >= player.y) {
     clashCooldown = true;
-
     setTimeout(() => {
       if (ballCount > enemies.length) enemies.shift();
       else if (enemies.length > ballCount) ballCount--;
@@ -187,73 +239,46 @@ function updateBattle() {
   }
 }
 
-// ================= END =================
-let endText = "";
-
 function endBattle() {
   gameState = "END";
 
   if (initialPlayerCount > initialEnemyCount) {
     endText = `${initialPlayerCount} > ${initialEnemyCount}\nYOU WIN`;
+    playSound(sounds.win);
     level++;
   } else if (initialPlayerCount < initialEnemyCount) {
     endText = `${initialPlayerCount} < ${initialEnemyCount}\nYOU LOSE`;
+    playSound(sounds.lose);
     level = 1;
   } else {
-    endText = `${initialPlayerCount} = ${initialEnemyCount}\nDRAW`;
+    endText = `${initialPlayerCount} = ${initialEnemyCount}\nNO WINNER`;
   }
 
-  if (score > bestScore) {
-    bestScore = score;
-    localStorage.setItem("bestScore", bestScore);
-    bestEl.textContent = bestScore;
-  }
-
-  setTimeout(() => resetGame(false), 2800);
+  setTimeout(resetGame, 2800);
 }
 
-function resetGame(fullReset) {
-  if (fullReset) level = 1;
+function resetGame() {
   gates = [];
   crates = [];
   enemies = [];
   gatesPassed = 0;
   cratesSpawned = 0;
   ballCount = 1;
-  score = 0;
-  scoreEl.textContent = 0;
   gameState = "RUN";
-  paused = false;
 }
 
 // ================= LOOP =================
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (!paused) {
-    if (gameState === "RUN") updateRun();
-    if (gameState === "BATTLE") updateBattle();
-  }
+  if (gameState === "RUN") updateRun();
+  if (gameState === "BATTLE") updateBattle();
 
   for (let i = 0; i < ballCount; i++) {
-    ctx.fillStyle = i === 0 ? "cyan" : "lightgreen";
-    ctx.beginPath();
-    ctx.arc(player.x + i * 22, player.y, player.radius, 0, Math.PI * 2);
-    ctx.fill();
+    drawBall(player.x + i * 22, player.y, player.r, i === 0 ? "cyan" : "lightgreen");
   }
 
-  gates.forEach(g => {
-    ctx.fillStyle = g.used ? "#555" : "orange";
-    ctx.fillRect(g.x, g.y, g.w, g.h);
-    ctx.fillStyle = "black";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(
-      g.op.replace("*", "×").replace("/", "÷"),
-      g.x + g.w / 2,
-      g.y + g.h / 2
-    );
-  });
+  gates.forEach(drawGate);
 
   crates.forEach(c => {
     ctx.fillStyle = "#555";
@@ -261,12 +286,7 @@ function loop() {
     ctx.fillText("📦", c.x + c.w / 2, c.y + c.h / 2);
   });
 
-  enemies.forEach(e => {
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-    ctx.fill();
-  });
+  enemies.forEach(e => drawBall(e.x, e.y, e.r, "red"));
 
   if (gameState === "END") {
     ctx.fillStyle = "white";
@@ -275,6 +295,7 @@ function loop() {
     ctx.fillText(endText, canvas.width / 2, canvas.height / 2);
   }
 
+  drawHUD();
   requestAnimationFrame(loop);
 }
 
