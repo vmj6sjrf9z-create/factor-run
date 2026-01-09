@@ -3,12 +3,41 @@ html, body {
   padding: 0;
   background: black;
   overflow: hidden;
+  font-family: Arial, sans-serif;
 }
 
 canvas {
   display: block;
 }
 
-h3 {
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.top-left, .top-right {
+  position: absolute;
+  top: 12px;
   color: white;
- } 
+  font-size: 16px;
+}
+
+.top-left {
+  left: 12px;
+}
+
+.top-right {
+  right: 12px;
+}
+
+button {
+  pointer-events: auto;
+  background: #222;
+  color: white;
+  border: 1px solid #555;
+  padding: 6px 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  margin-left: 6px;
+}
