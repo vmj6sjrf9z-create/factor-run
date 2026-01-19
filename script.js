@@ -1,3 +1,6 @@
+document.addEventListener("DOMContentLoaded", () => {
+  // ALL your JS code here
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -298,3 +301,4 @@ muteBtn.onclick=()=>{
   muted=!muted;
   muteBtn.textContent = muted?"🔇":"🔊";
 };
+});
